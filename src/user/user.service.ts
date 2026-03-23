@@ -28,8 +28,12 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    if (!fields || fields.length === 0) {
-      return user;
+    if (fields === undefined) {
+    return user;
+    }
+
+     if (fields.length === 0) {
+    return {};
     }
 
     const result: Partial<User> = {};
@@ -47,14 +51,19 @@ export class UserService {
   create(dto: CreateUserDto): User {
     const users = this.findAll();
 
+    const lastId = users.length > 0
+    ? Math.max(...users.map((u) => Number(u.id)))
+    : 0;
+
     const newUser: User = {
-      id: (users.length + 1).toString(),
-      ...dto,
+    id: (lastId + 1).toString(),
+    ...dto,
     };
 
-    users.push(newUser);
 
-    writeFileSync(this.filePath, JSON.stringify(users, null, 2));
+    const updatedUsers = [...users, newUser];
+
+    writeFileSync(this.filePath, JSON.stringify(updatedUsers, null, 2));
 
     return newUser;
   }
