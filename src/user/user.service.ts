@@ -8,8 +8,8 @@ import * as path from 'path';
 export class UserService {
   private readonly filePath = path.resolve(process.cwd(), 'data/users.json');
   test(): string[] {
-  return []; // โจทย์ต้องการ empty array แบบนี้ครับ []
- }
+    return []; // โจทย์ต้องการ empty array แบบนี้ครับ []
+  }
 
   findAll(): User[] {
     const fileContent = fs.readFileSync(this.filePath, 'utf8');
@@ -46,10 +46,11 @@ export class UserService {
     const users = this.findAll();
 
     // จุดที่ 3: ระบุ Type ให้ parameter 'u' ใน map และใส่ radix '10' ให้ parseInt
-    const lastId = users.length > 0 
-      ? Math.max(...users.map((u: User) => parseInt(u.id, 10))) 
-      : 0;
-    
+    const lastId =
+      users.length > 0
+        ? Math.max(...users.map((u: User) => parseInt(u.id, 10)))
+        : 0;
+
     const newId = (lastId + 1).toString();
 
     const newUser: User = {
