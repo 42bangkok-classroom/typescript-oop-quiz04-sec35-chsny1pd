@@ -37,11 +37,8 @@ export class UserController {
 
   // ข้อ 5
   @Post()
-  @UsePipes(new ValidationPipe({
-  whitelist: true,
-  forbidNonWhitelisted: false, // 🔥 ต้องมี
-  }))
+  @UsePipes(new ValidationPipe())
   create(@Body() dto: CreateUserDto) {
-  return this.userService.create(dto);
-}
+    return this.userService.create(dto);
+  }
 }
