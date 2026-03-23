@@ -29,11 +29,11 @@ export class UserService {
     }
 
     if (fields === undefined) {
-    return user;
+      return user;
     }
 
-     if (fields.length === 0) {
-    return {};
+    if (fields.length === 0) {
+      return {};
     }
 
     const result: Partial<User> = {};
@@ -51,15 +51,13 @@ export class UserService {
   create(dto: CreateUserDto): User {
     const users = this.findAll();
 
-    const lastId = users.length > 0
-    ? Math.max(...users.map((u) => Number(u.id)))
-    : 0;
+    const lastId =
+      users.length > 0 ? Math.max(...users.map((u) => Number(u.id))) : 0;
 
     const newUser: User = {
-    id: (lastId + 1).toString(),
-    ...dto,
+      id: (lastId + 1).toString(),
+      ...dto,
     };
-
 
     const updatedUsers = [...users, newUser];
 
