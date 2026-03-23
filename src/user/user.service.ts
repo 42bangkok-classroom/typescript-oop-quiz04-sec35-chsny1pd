@@ -1,23 +1,25 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 import { User } from './user.interface';
 import { CreateUserDto } from './dto/create-user.dto';
-import * as fs from 'fs';
-import * as path from 'path';
 
 @Injectable()
 export class UserService {
-  private readonly filePath = path.resolve(process.cwd(), 'data/users.json');
-  test(): string[] {
-    return []; // โจทย์ต้องการ empty array แบบนี้ครับ []
+  private filePath = join(process.cwd(), 'data', 'users.json');
+
+  // ข้อ 2
+  test():User[] {
+    return [];
   }
 
+  // ข้อ 3
   findAll(): User[] {
-    const fileContent = fs.readFileSync(this.filePath, 'utf8');
-    // จุดที่ 1: ใช้ Type Assertion 'as User[]' เพื่อบอก TypeScript ว่าข้อมูลที่ parse มาคือ Array ของ User
-    const users = JSON.parse(fileContent) as User[];
-    return users;
+    const data = readFileSync(this.filePath, 'utf-8');
+    return JSON.parse(data) as User[]; // ✅ แก้ any
   }
 
+  // ข้อ 4
   findOne(id: string, fields?: string[]): Partial<User> {
     const users = this.findAll();
     const user = users.find((u) => u.id === id);
@@ -30,36 +32,29 @@ export class UserService {
       return user;
     }
 
-    // จุดที่ 2: ระบุ Type ให้ filteredUser เป็น Partial<User> หรือ Record
-    // และใช้ Type Casting (user as any)[field] เพื่อให้เข้าถึง key ด้วย string ได้โดยไม่ติด error
-    const filteredUser: Partial<User> = {};
+    const result: Partial<User> = {};
+
     fields.forEach((field) => {
-      if ((user as any)[field] !== undefined) {
-        (filteredUser as any)[field] = (user as any)[field];
+      if (field in user) {
+        result[field as keyof User] = user[field as keyof User];
       }
     });
 
-    return filteredUser;
+    return result;
   }
 
+  // ข้อ 5
   create(dto: CreateUserDto): User {
     const users = this.findAll();
 
-    // จุดที่ 3: ระบุ Type ให้ parameter 'u' ใน map และใส่ radix '10' ให้ parseInt
-    const lastId =
-      users.length > 0
-        ? Math.max(...users.map((u: User) => parseInt(u.id, 10)))
-        : 0;
-
-    const newId = (lastId + 1).toString();
-
     const newUser: User = {
-      id: newId,
+      id: (users.length + 1).toString(),
       ...dto,
     };
 
     users.push(newUser);
-    fs.writeFileSync(this.filePath, JSON.stringify(users, null, 2), 'utf8');
+
+    writeFileSync(this.filePath, JSON.stringify(users, null, 2));
 
     return newUser;
   }

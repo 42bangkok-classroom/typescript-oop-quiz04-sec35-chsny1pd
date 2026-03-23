@@ -5,40 +5,43 @@ import {
   Query,
   Post,
   Body,
+  UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
-import type { User } from './user.interface';
+import { User } from './user.interface';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // ข้อ 2
   @Get('test')
-  test(): string[] {
+  test(): User[] {
     return this.userService.test();
   }
 
+  // ข้อ 3
   @Get()
-  getAllUsers(): User[] {
+  findAll(): User[] {
     return this.userService.findAll();
   }
 
+  // ข้อ 4
   @Get(':id')
-  // แก้ไข: ระบุ Return Type เป็น Partial<User> หรือ any (ถ้ามีการ filter fields)
-  // และระบุให้ชัดเจนว่า method นี้คืนค่าอะไร
-  getUserById(
+  findOne(
     @Param('id') id: string,
-    @Query('fields') fieldsString?: string,
-  ): Partial<User> | User {
-    const fields = fieldsString ? fieldsString.split(',') : undefined;
-    return this.userService.findOne(id, fields);
+    @Query('fields') fields?: string,
+  ) {
+    const fieldArray = fields ? fields.split(',') : undefined;
+    return this.userService.findOne(id, fieldArray);
   }
 
+  // ข้อ 5
   @Post()
-  // แก้ไข: ระบุ Return Type เป็น User เพื่อให้ตรงกับที่ Service ส่งกลับมา
-  createUser(@Body(new ValidationPipe()) createUserDto: CreateUserDto): User {
-    return this.userService.create(createUserDto);
+  @UsePipes(new ValidationPipe())
+  create(@Body() dto: CreateUserDto) {
+    return this.userService.create(dto);
   }
 }
