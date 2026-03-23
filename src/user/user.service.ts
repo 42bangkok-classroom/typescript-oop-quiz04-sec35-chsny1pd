@@ -8,41 +8,34 @@ import * as path from 'path';
 export class UserService {
   private readonly filePath = path.resolve(process.cwd(), 'data/users.json');
   test(): string[] {
-    return [];
-  }
+  return []; // โจทย์ต้องการ empty array แบบนี้ครับ []
+ }
 
-  // สร้าง method findAll() เพื่ออ่านข้อมูลจากไฟล์
   findAll(): User[] {
-    // กำหนด path ของไฟล์ (ย้อนกลับไปที่ root folder แล้วเข้าหา data/users.json)
-    const filePath = path.resolve(process.cwd(), 'data/users.json');
-
-    // อ่านไฟล์แบบ Sync
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-
-    // แปลง JSON string เป็น JavaScript Object (Array of IUser)
-    const users: User[] = JSON.parse(fileContent);
-
+    const fileContent = fs.readFileSync(this.filePath, 'utf8');
+    // จุดที่ 1: ใช้ Type Assertion 'as User[]' เพื่อบอก TypeScript ว่าข้อมูลที่ parse มาคือ Array ของ User
+    const users = JSON.parse(fileContent) as User[];
     return users;
   }
+
   findOne(id: string, fields?: string[]): Partial<User> {
     const users = this.findAll();
     const user = users.find((u) => u.id === id);
 
-    // 1. ถ้าไม่พบ user ให้ throw error 404
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // 2. ถ้าไม่ได้ระบุ fields ให้ส่งคืน user ทั้งหมด
     if (!fields || fields.length === 0) {
       return user;
     }
 
-    // 3. ถ้าระบุ fields ให้เลือกเฉพาะ key ที่ต้องการ
-    const filteredUser = {};
+    // จุดที่ 2: ระบุ Type ให้ filteredUser เป็น Partial<User> หรือ Record
+    // และใช้ Type Casting (user as any)[field] เพื่อให้เข้าถึง key ด้วย string ได้โดยไม่ติด error
+    const filteredUser: Partial<User> = {};
     fields.forEach((field) => {
-      if (user[field] !== undefined) {
-        filteredUser[field] = user[field];
+      if ((user as any)[field] !== undefined) {
+        (filteredUser as any)[field] = (user as any)[field];
       }
     });
 
@@ -52,18 +45,18 @@ export class UserService {
   create(dto: CreateUserDto): User {
     const users = this.findAll();
 
-    // 1. Generate ID ใหม่ (เอา ID ตัวสุดท้าย + 1)
-    const lastId =
-      users.length > 0 ? Math.max(...users.map((u) => parseInt(u.id))) : 0;
+    // จุดที่ 3: ระบุ Type ให้ parameter 'u' ใน map และใส่ radix '10' ให้ parseInt
+    const lastId = users.length > 0 
+      ? Math.max(...users.map((u: User) => parseInt(u.id, 10))) 
+      : 0;
+    
     const newId = (lastId + 1).toString();
 
-    // 2. สร้าง User Object ใหม่
     const newUser: User = {
       id: newId,
       ...dto,
     };
 
-    // 3. เพิ่มเข้า Array และเขียนลงไฟล์
     users.push(newUser);
     fs.writeFileSync(this.filePath, JSON.stringify(users, null, 2), 'utf8');
 
