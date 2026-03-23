@@ -9,7 +9,7 @@ export class UserService {
   private filePath = join(process.cwd(), 'data', 'users.json');
 
   // ข้อ 2
-  test():User[] {
+  test(): User[] {
     return [];
   }
 
